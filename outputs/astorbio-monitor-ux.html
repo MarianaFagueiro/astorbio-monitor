@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AstorBio Monitor - UX Friendly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fcfaf7;--surface:#ffffff;--surface2:#f4eee8;--surface3:#111111;
+    --line:rgba(44,42,41,.14);--line2:rgba(44,42,41,.26);
+    --text:#2c2a29;--muted:#6f625b;--faint:#91827a;
+    --good:#3f7f58;--warn:#d6b49b;--bad:#bc5038;--info:#2c2a29;--violet:#2c2a29;
+    --status-good:#3f7f58;--status-warn:#d6a15f;--status-bad:#bc5038;
+    --sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.45}
+  button,input,select{font:inherit}
+  button{border:1px solid var(--line2);background:var(--surface);color:var(--text);border-radius:8px;padding:9px 13px;cursor:pointer;font-weight:600}
+  button:hover{border-color:var(--text);color:var(--text)}
+  button.primary{background:var(--bad);border-color:var(--bad);color:#fcfaf7}
+  button.ghost{background:transparent}
+  button.icon{width:36px;height:36px;padding:0;display:grid;place-items:center}
+  .wrap{max-width:1220px;margin:auto;padding:20px 18px 56px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:42px;height:42px;border-radius:8px;background:#111111;border:1px solid #111111;display:grid;place-items:center;color:#fcfaf7;font-weight:800}
+  h1{font-size:22px;margin:0}
+  .subtitle{color:var(--muted);font-size:13px;margin-top:2px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  .tabs{display:flex;gap:4px;background:#f4eee8;border:1px solid var(--line);border-radius:8px;padding:3px}
+  .tabs button{border:0;background:transparent;padding:7px 10px;color:var(--muted)}
+  .tabs button.active{background:var(--surface3);color:#fcfaf7}
+  .grid{display:grid;gap:14px}
+  .top{grid-template-columns:340px 1fr}
+  .cols{grid-template-columns:1fr 1fr}
+  @media(max-width:860px){.top,.cols{grid-template-columns:1fr}.controls{width:100%}.tabs{order:2}}
+  .panel{background:var(--surface);border:1px solid var(--line);border-top:3px solid rgba(44,42,41,.18);border-radius:8px;padding:16px;box-shadow:0 10px 24px rgba(44,42,41,.06)}
+  .panel h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--text);margin:0 0 12px;display:flex;align-items:center;gap:7px}
+  .help{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--line2);color:var(--muted);font-size:12px;position:relative;cursor:help}
+  .help:hover::after{content:attr(data-tip);position:absolute;z-index:5;left:22px;top:-8px;width:260px;background:#111111;border:1px solid #111111;border-radius:8px;padding:10px;color:#fcfaf7;font-size:12px;text-transform:none;letter-spacing:0;box-shadow:0 12px 28px rgba(44,42,41,.22)}
+  .score{text-align:center}
+  .ring{position:relative;width:204px;height:204px;margin:8px auto;filter:drop-shadow(0 10px 18px rgba(44,42,41,.12))}
+  .ring svg{transform:rotate(-90deg)}
+  .val{position:absolute;inset:0;display:grid;place-items:center}
+  .num{font-family:var(--mono);font-size:48px;font-weight:600}
+  .den{display:block;font-size:13px;color:var(--muted);font-weight:400}
+  .status{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:7px 12px;font-weight:700}
+  .status.good{background:rgba(63,127,88,.14);color:var(--status-good);border:1px solid rgba(63,127,88,.35)}
+  .status.warn{background:rgba(214,180,155,.22);color:#6f4d39;border:1px solid rgba(214,180,155,.55)}
+  .status.bad{background:rgba(188,80,56,.14);color:var(--bad);border:1px solid rgba(188,80,56,.45)}
+  .plain{font-size:14px;color:var(--muted);margin:12px 0 0}
+  .source{font-size:11px;color:var(--faint);font-family:var(--mono);margin-top:12px}
+  .interpretation{background:#fcfaf7;border:1px solid var(--line);border-radius:8px;padding:13px;margin-bottom:10px}
+  .interpretation strong{display:block;font-size:15px;margin-bottom:4px}
+  .interpretation p{margin:0;color:var(--muted);font-size:13px}
+  .api-note{background:#fcfaf7;border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0;color:var(--text);font-size:13px}
+  .api-note b{display:block;color:#111111;margin-bottom:3px}
+  .metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:720px){.metrics-grid{grid-template-columns:1fr}}
+  .explain{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:13px}
+  .explain strong{display:block;margin-bottom:4px}
+  .explain p{margin:0;color:var(--muted);font-size:13px}
+  .metric-score{font-family:var(--mono);font-size:30px;line-height:1;font-weight:700;color:var(--text);margin:8px 0 4px}
+  .metric-score span{font-size:13px;color:var(--muted);font-weight:500}
+  .metric-state{font-size:12px;font-weight:700;color:#111111;margin-bottom:6px}
+  .bar{height:9px;background:#eee5dc;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:10px}
+  .bar i{display:block;height:100%;width:0%;border-radius:999px;transition:width .45s;background:var(--text)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+  @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:#fcfaf7;border:1px solid var(--line);border-radius:8px;padding:12px}
+  .stat .n{font-family:var(--mono);font-size:23px;font-weight:600}
+  .stat .l{color:var(--muted);font-size:12px}
+  .recommendations{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+  @media(max-width:900px){.recommendations{grid-template-columns:1fr}}
+  .rec{border:1px solid var(--line);background:var(--surface2);border-left:4px solid rgba(44,42,41,.24);border-radius:8px;padding:12px}
+  .rec b{display:block;margin-bottom:4px}
+  .rec span{color:var(--muted);font-size:13px}
+  .disease-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+  @media(max-width:980px){.disease-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.disease-grid{grid-template-columns:1fr}}
+  .disease-card{background:var(--surface2);border:1px solid var(--line);border-left:4px solid rgba(44,42,41,.24);border-radius:8px;padding:13px}
+  .disease-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .disease-head b{font-size:15px}
+  .mini-score{font-family:var(--mono);font-size:24px;font-weight:700}
+  .mini-status{display:inline-block;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:700;margin-top:4px}
+  .mini-status.good{background:rgba(63,127,88,.14);color:var(--status-good)}
+  .mini-status.warn{background:rgba(214,180,155,.24);color:#6f4d39}
+  .mini-status.bad{background:rgba(188,80,56,.14);color:var(--bad)}
+  .disease-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+  .disease-meta div{background:#fcfaf7;border:1px solid var(--line);border-radius:8px;padding:8px}
+  .disease-meta strong{display:block;font-family:var(--mono);font-size:15px}
+  .disease-meta span{color:var(--muted);font-size:11px}
+  .disease-reason{color:var(--muted);font-size:13px;margin-top:10px}
+  .flow{margin:0 0 14px}
+  .flow-intro{color:var(--muted);font-size:14px;margin:0 0 12px}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:980px){.steps{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.steps{grid-template-columns:1fr}}
+  .step{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px;min-height:132px}
+  .step-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .step-num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#111111;border:1px solid #111111;font-family:var(--mono);font-size:12px;color:#fcfaf7}
+  .step b{font-size:14px}
+  .step p{margin:0;color:var(--muted);font-size:13px}
+  .step small{display:block;color:var(--faint);font-family:var(--mono);font-size:11px;margin-top:8px}
+  .field-map{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  @media(max-width:780px){.field-map{grid-template-columns:1fr}}
+  .map-item{background:#fcfaf7;border:1px dashed var(--line2);border-radius:8px;padding:10px;color:var(--muted);font-size:12px}
+  .map-item strong{display:block;color:var(--text);font-size:13px;margin-bottom:3px}
+  .entity{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:13px;margin-bottom:10px}
+  .entity-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .name{font-weight:700}
+  .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .tag,.toggle{font-family:var(--mono);font-size:11px;border-radius:999px;padding:4px 8px;white-space:nowrap}
+  .tag{border:1px solid var(--line2);color:var(--text);background:#fcfaf7}
+  .toggle{border:1px solid var(--line2);cursor:pointer}
+  .toggle.on{color:var(--text);background:rgba(44,42,41,.08)}
+  .toggle.off{color:var(--bad);background:rgba(188,80,56,.12)}
+  .vals{display:flex;flex-wrap:wrap;gap:16px;margin-top:11px}
+  .mv{font-family:var(--mono);font-size:17px;font-weight:600}
+  .ml{font-size:11px;color:var(--muted);text-transform:uppercase}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+  .why{margin-top:10px;border-top:1px dashed var(--line2);padding-top:9px;color:var(--muted);font-size:12px}
+  .events-form{display:grid;grid-template-columns:1fr 190px auto;gap:8px;margin-bottom:8px}
+  @media(max-width:680px){.events-form{grid-template-columns:1fr}.events-form input,.events-form select{width:100%}}
+  .auto-impact{color:var(--muted);font-size:12px;margin:0 0 10px}
+  input,select{background:#ffffff;border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:9px 10px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+  .chip{font-size:12px;border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:6px 10px;cursor:pointer}
+  .event{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:10px 0}
+  .event:last-child{border:0}
+  .when{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:2px}
+  .impact{font-family:var(--mono);font-weight:700}
+  .pos{color:var(--status-good)}.neg{color:var(--status-bad)}
+  .empty{color:var(--faint);font-style:italic;text-align:center;padding:18px}
+  .technical .simple-only{display:none}
+  body:not(.technical) .tech-only{display:none}
+  details{margin-top:10px;color:var(--muted);font-size:13px}
+  summary{cursor:pointer;color:var(--text);font-weight:700}
+  .modal-bg{position:fixed;inset:0;background:rgba(17,17,17,.72);z-index:10;display:none;align-items:center;justify-content:center;padding:18px}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--line2);border-radius:8px;width:min(520px,100%);max-height:90vh;overflow:auto;padding:18px}
+  .tutorial{width:min(760px,100%)}
+  .tutorial-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+  @media(max-width:680px){.tutorial-grid{grid-template-columns:1fr}}
+  .tutorial-card{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px}
+  .tutorial-card b{display:block;margin-bottom:4px}
+  .tutorial-card p{margin:0;color:var(--muted);font-size:13px}
+  .field{margin-bottom:11px}
+  .field label{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px;margin-bottom:5px}
+  .field label span{color:var(--faint);text-align:right;max-width:58%;overflow-wrap:anywhere}
+  .field-name{display:flex;align-items:center;gap:6px;color:var(--muted)}
+  .field-help{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;border:1px solid var(--line2);font-size:11px;color:var(--muted);position:relative;cursor:help}
+  .field-help:hover::after{content:attr(data-tip);position:absolute;left:21px;top:-8px;z-index:20;width:310px;max-width:min(310px,70vw);background:#111111;border:1px solid #111111;border-radius:8px;padding:9px;color:#fcfaf7;font-size:12px;line-height:1.35;box-shadow:0 12px 28px rgba(44,42,41,.22)}
+  .field input,.field select{width:100%}
+  .field input[type=range]{appearance:none;height:10px;border:1px solid var(--line2);border-radius:999px;background:linear-gradient(90deg,var(--info) 0%,var(--info) 50%,#eee5dc 50%,#eee5dc 100%);padding:0}
+  .field input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:#fcfaf7;border:2px solid var(--text);box-shadow:0 0 0 3px rgba(44,42,41,.12)}
+  .field input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fcfaf7;border:2px solid var(--text)}
+  .range-wrap{display:grid;grid-template-columns:1fr 54px;gap:10px;align-items:center}
+  .range-value{font-family:var(--mono);font-weight:700;text-align:center;background:#fcfaf7;border:1px solid var(--line2);border-radius:8px;padding:8px 6px}
+  .helper-box{background:#fcfaf7;border:1px solid var(--line);border-radius:8px;padding:11px;margin:10px 0 12px;color:var(--muted);font-size:13px}
+  .helper-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+  .scale-help{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+  @media(max-width:560px){.scale-help{grid-template-columns:1fr}}
+  .scale-help div{background:#ffffff;border:1px solid var(--line);border-radius:8px;padding:8px}
+  .scale-help b{display:block;color:var(--text);font-size:12px;margin-bottom:2px}
+  .scale-help span{font-size:11px;color:var(--muted)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">AB</div>
+      <div>
+        <h1>AstorBio Monitor</h1>
+        <div class="subtitle">Painel de entendimento para pesquisas biomédicas em ambiente orbital</div>
+      </div>
+    </div>
+    <div class="tabs" aria-label="Modo de leitura">
+      <button id="simpleBtn" class="active" onclick="setMode('simple')">Simples</button>
+      <button id="techBtn" onclick="setMode('technical')">Técnico</button>
+    </div>
+    <div class="controls">
+      <button onclick="abrirTutorial()">Tutorial</button>
+      <button class="primary" onclick="syncApis()">Sincronizar APIs</button>
+      <button onclick="abrirCadastro()">Cadastrar</button>
+      <button onclick="carregarExemplo()">Exemplo</button>
+      <button class="ghost" onclick="esvaziar()">Esvaziar</button>
+    </div>
+  </header>
+
+  <section class="panel flow">
+    <h2>Como as informações são preenchidas <span class="help" data-tip="Este passo a passo mostra o caminho do dado: de onde ele vem, como vira métrica e como aparece na recomendação.">?</span></h2>
+    <p class="flow-intro" id="flowIntro">O painel começa com dados de exemplo, mas você pode cadastrar itens manualmente ou sincronizar APIs públicas.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-top"><span class="step-num">1</span><b>Escolha a fonte</b></div>
+        <p id="flowStep1">Use dados de exemplo, cadastro manual ou o botão de sincronização.</p>
+        <small>Entrada: exemplo, formulário ou API</small>
+      </div>
+      <div class="step">
+        <div class="step-top"><span class="step-num">2</span><b>Preencha os campos</b></div>
+        <p>Pesquisas recebem doença, complexidade e progresso base de 0 a 10. Eventos recebem doença cadastrada e tipo.</p>
+        <small>Campos: 0-10, seleção e texto</small>
+      </div>
+      <div class="step">
+        <div class="step-top"><span class="step-num">3</span><b>O programa calcula</b></div>
+        <p>O sistema transforma os dados em notas de pesquisa, laboratório e alerta. O impacto do evento é automático.</p>
+        <small>Saída: notas intermediárias</small>
+      </div>
+      <div class="step">
+        <div class="step-top"><span class="step-num">4</span><b>Leia a decisão</b></div>
+        <p>A nota final gera status, resumo em português claro e recomendações de prioridade.</p>
+        <small>Resultado: pronto, atenção ou crítico</small>
+      </div>
+    </div>
+    <div class="field-map simple-only">
+      <div class="map-item"><strong>Pesquisas</strong>Respondem: “a ciência está avançando bem?”</div>
+      <div class="map-item"><strong>Laboratórios</strong>Respondem: “os equipamentos estão conseguindo sustentar a missão?”</div>
+      <div class="map-item"><strong>Eventos</strong>Respondem: “algo recente ajudou ou atrapalhou?”</div>
+    </div>
+    <div class="field-map tech-only">
+      <div class="map-item"><strong>ClinicalTrials.gov / OpenAlex</strong>Preenchem pesquisas por volume de estudos, status e evidência bibliográfica.</div>
+      <div class="map-item"><strong>NASA DONKI / NOAA SWPC</strong>Preenchem eventos de clima espacial, como flares e alertas solares.</div>
+      <div class="map-item"><strong>Simulação/manual</strong>Preenche laboratórios/equipamentos porque telemetria real dependeria de sensores ou API interna.</div>
+    </div>
+  </section>
+
+  <div class="grid top">
+    <section class="panel score">
+      <h2>Saúde geral <span class="help" data-tip="É uma nota de 0 a 100 que combina pesquisas, laboratórios e eventos recentes. Quanto maior, melhor.">?</span></h2>
+      <div class="ring">
+        <svg width="204" height="204" viewBox="0 0 204 204">
+          <circle cx="102" cy="102" r="87" fill="none" stroke="#eee5dc" stroke-width="15"/>
+          <circle id="ringFill" cx="102" cy="102" r="87" fill="none" stroke="#2c2a29" stroke-width="15" stroke-linecap="round" stroke-dasharray="546.6" stroke-dashoffset="546.6"/>
+        </svg>
+        <div class="val"><div><span class="num" id="ipoNum">0</span><span class="den">de 100</span></div></div>
+      </div>
+      <div id="ipoLabel" class="status bad">Atenção alta</div>
+      <p id="plainSummary" class="plain">Carregando leitura geral...</p>
+      <div id="sourceLine" class="source">Fonte: dados de exemplo</div>
+      <details class="tech-only">
+        <summary>Como a nota é calculada</summary>
+        IPO geral = saúde das pesquisas x 40% + laboratórios/equipamentos x 35% + eventos x 25%.
+        IPO por doença = pesquisas da doença x 55% + laboratórios/equipamentos x 20% + eventos da doença x 25%.
+      </details>
+    </section>
+
+    <section class="panel">
+      <h2>O que essa nota quer dizer <span class="help" data-tip="Esta área traduz a nota em linguagem simples: o que está bem, o que preocupa e de onde vieram os dados.">?</span></h2>
+      <div class="interpretation">
+        <strong id="scoreMeaningTitle">Leitura rápida do painel</strong>
+        <p id="scoreMeaningText">A nota junta ciência, laboratórios e alertas para indicar se a missão pode avançar com segurança.</p>
+      </div>
+      <div class="api-note">
+        <b>Por que usar API?</b>
+        APIs permitem buscar dados públicos atualizados, como estudos clínicos, publicações e clima espacial. Assim o painel não depende só de alguém preencher tudo manualmente.
+      </div>
+      <div class="metrics-grid">
+        <div class="explain">
+          <strong>1. Ciência</strong>
+          <div class="metric-score" id="d1Score">0,0 <span>/100</span></div>
+          <div class="metric-state" id="d1State">Situação em cálculo</div>
+          <p id="d1Text">Mostra progresso, qualidade e dificuldade das linhas de pesquisa.</p>
+          <div class="bar"><i id="d1"></i></div>
+        </div>
+        <div class="explain">
+          <strong>2. Estrutura</strong>
+          <div class="metric-score" id="d2Score">0,0 <span>/100</span></div>
+          <div class="metric-state" id="d2State">Operação em cálculo</div>
+          <p id="d2Text">Mostra energia, eficiência e operação dos laboratórios/equipamentos.</p>
+          <div class="bar"><i id="d2"></i></div>
+        </div>
+        <div class="explain">
+          <strong>3. Riscos recentes</strong>
+          <div class="metric-score" id="d3Score">0,0 <span>/100</span></div>
+          <div class="metric-state" id="d3State">Risco em cálculo</div>
+          <p id="d3Text">Eventos negativos derrubam a nota; avanços ajudam.</p>
+          <div class="bar"><i id="d3"></i></div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n" id="sLinhas">0</div><div class="l">pesquisas analisadas</div></div>
+        <div class="stat"><div class="n" id="sModulos">0</div><div class="l">laboratórios no cálculo</div></div>
+        <div class="stat"><div class="n" id="sEventos">0</div><div class="l">alertas considerados</div></div>
+        <div class="stat"><div class="n" id="sAlerta">0</div><div class="l">itens para revisar</div></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="recommendations" id="recommendations"></section>
+
+  <section class="panel">
+    <h2>Saúde por doença <span class="help" data-tip="O IPO geral resume a missão inteira. Aqui a nota é calculada separadamente para cada doença cadastrada.">?</span></h2>
+    <p class="flow-intro">Use esta área para comparar o andamento de cada doença sem misturar tudo em uma única nota.</p>
+    <div class="disease-grid" id="diseaseBox"></div>
+  </section>
+
+  <div class="grid cols">
+    <section class="panel">
+      <h2>Pesquisas <span class="help" data-tip="Cada card mostra o quanto a pesquisa avançou e se ela está saudável o suficiente para continuar.">?</span></h2>
+      <div id="linhasBox"></div>
+    </section>
+    <section class="panel">
+      <h2>Laboratórios e equipamentos <span class="help" data-tip="Aqui entram os equipamentos e ambientes que sustentam as pesquisas, como sequenciador, biorreator e câmara criogênica.">?</span></h2>
+      <div id="modulosBox"></div>
+    </section>
+  </div>
+
+  <section class="panel" style="margin-top:14px">
+    <h2>Eventos e alertas <span class="help" data-tip="Eventos são acontecimentos que mudam a prontidão da missão, como tempestades solares, falhas ou avanços.">?</span></h2>
+    <div class="events-form">
+      <select id="evDoenca" aria-label="Doença cadastrada"></select>
+      <select id="evTipo" aria-label="Tipo de evento">
+        <option value="radiacao">Radiação / clima espacial</option>
+        <option value="falha">Falha de laboratório</option>
+        <option value="contaminacao">Contaminação</option>
+        <option value="energia">Energia / temperatura</option>
+        <option value="avanco">Avanço científico</option>
+      </select>
+      <button class="primary" onclick="registrarEvento()">Registrar</button>
+    </div>
+    <p class="auto-impact">Eventos só podem ser registrados para doenças já cadastradas. O impacto é calculado automaticamente pelo programa.</p>
+    <div class="chips">
+      <span class="chip" onclick="evRapido('radiacao')">Radiação</span>
+      <span class="chip" onclick="evRapido('falha')">Falha de laboratório</span>
+      <span class="chip" onclick="evRapido('contaminacao')">Contaminação</span>
+      <span class="chip" onclick="evRapido('avanco')">Avanço</span>
+    </div>
+    <div id="eventosBox"></div>
+  </section>
+</div>
+
+<div class="modal-bg" id="tutorialBg">
+  <div class="modal tutorial">
+    <h2>Mini tutorial: como mexer no site</h2>
+    <p class="flow-intro">Siga esta ordem para entender a tela sem precisar conhecer as métricas técnicas.</p>
+    <div class="tutorial-grid">
+      <div class="tutorial-card"><b>1. Veja como os dados entram</b><p>A primeira seção da página mostra se os dados vêm de exemplo, cadastro manual ou APIs.</p></div>
+      <div class="tutorial-card"><b>2. Escolha uma ação no topo</b><p>Use “Exemplo” para testar, “Cadastrar” para inserir dados, ou “Sincronizar APIs” para buscar fontes públicas.</p></div>
+      <div class="tutorial-card"><b>3. Leia a saúde geral</b><p>A nota grande resume a missão inteira. Ela serve para saber se o sistema todo está bem.</p></div>
+      <div class="tutorial-card"><b>4. Compare por doença</b><p>Em “Saúde por doença”, veja o IPO específico de cada doença cadastrada.</p></div>
+      <div class="tutorial-card"><b>5. Registre acontecimentos</b><p>Em “Eventos e alertas”, selecione a doença cadastrada e o tipo do evento. O programa calcula o impacto sozinho.</p></div>
+      <div class="tutorial-card"><b>6. Alterne Simples/Técnico</b><p>Use “Simples” para entender rápido e “Técnico” para ver fonte, pesos e detalhes do cálculo.</p></div>
+    </div>
+    <div class="modal-actions">
+      <button class="primary" onclick="fecharTutorial()">Entendi</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Cadastrar item</h2>
+    <p class="auto-impact">Use os exemplos dentro dos campos como guia. Você pode trocar por dados reais da sua pesquisa.</p>
+    <div class="field">
+      <label>Tipo</label>
+      <select id="cadTipo" onchange="camposCadastro()">
+        <option value="envelhecimento">Pesquisa - Envelhecimento acelerado</option>
+        <option value="cristalografia">Pesquisa - Cristalografia de proteínas</option>
+        <option value="bioimpressao">Pesquisa - Bioimpressão 3D</option>
+        <option value="sequenciador">Laboratório/Equipamento - Sequenciador</option>
+        <option value="bioreator">Laboratório/Equipamento - Biorreator</option>
+        <option value="criogenica">Laboratório/Equipamento - Câmara criogênica</option>
+      </select>
+    </div>
+    <div class="helper-box">
+      <div id="cadAjuda">Escolha o tipo de cadastro para ver dicas de preenchimento.</div>
+      <div class="scale-help" id="cadEscala"></div>
+      <div class="helper-actions">
+        <button type="button" onclick="preencherSugestao()">Preencher sugestão</button>
+      </div>
+    </div>
+    <div id="cadCampos"></div>
+    <div class="modal-actions">
+      <button class="ghost" onclick="fecharCadastro()">Cancelar</button>
+      <button class="primary" onclick="salvarCadastro()">Cadastrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=v=>(Number.isFinite(v)?v:0).toFixed(1).replace('.',',');
+const by=id=>document.getElementById(id);
+let linhas=[],modulos=[],eventos=[],source='dados de exemplo',ipoAtual=0;
+
+function progressoLinha(l){
+  const base=escala10Para100(l.progressoBase);
+  if(l.tipo==='envelhecimento') return clamp(base + l.ciclos*(l.fator/2),0,100);
+  if(l.tipo==='cristalografia') return clamp((base+l.qualidade)/2 - l.defeitos*3,0,100);
+  return clamp((base+l.viabilidade)/2 + Math.min(20,l.camadas*0.5),0,100);
+}
+function escala10Para100(v){return clamp((Number(v)||0)*10,0,100)}
+function saudeLinha(l){return clamp(progressoLinha(l)-l.complexidade*2,0,100)}
+function retornavel(l){return l.tipo==='cristalografia'||l.tipo==='bioimpressao'}
+function custoReentrada(l){return l.tipo==='cristalografia'?12000+l.massa*850:15000+l.volume*120}
+function prontoRetorno(l){return l.tipo==='cristalografia'?l.qualidade>=70&&l.defeitos<=3:l.viabilidade>=75}
+function eficienciaModulo(m){
+  if(m.tipo==='sequenciador') return clamp(Math.min(100,m.amostrasPorHora)-m.taxaErro*100,0,100);
+  if(m.tipo==='bioreator') return clamp(m.densidade-Math.abs(m.temp-37)*5,0,100);
+  const oc=m.armazenadas*100/m.capacidade;return clamp(100-Math.min(60,Math.abs(m.temp+196)*0.3)-Math.max(0,oc-100),0,100);
+}
+function saudeModulo(m){return m.operacional?clamp(eficienciaModulo(m)*0.6+m.energia*0.4,0,100):0}
+function d1(){return linhas.length?linhas.reduce((s,l)=>s+saudeLinha(l),0)/linhas.length:0}
+function d2(){return modulos.length?modulos.reduce((s,m)=>s+saudeModulo(m),0)/modulos.length:0}
+function d3(){return clamp(100+eventos.reduce((s,e)=>s+e.impacto,0),0,100)}
+function ipo(){return clamp(d1()*.40+d2()*.35+d3()*.25,0,100)}
+function d1Doenca(doenca){
+  const rel=linhas.filter(l=>l.doenca===doenca);
+  return rel.length?rel.reduce((s,l)=>s+saudeLinha(l),0)/rel.length:0;
+}
+function eventosDoenca(doenca){return eventos.filter(e=>e.doenca===doenca||e.desc.includes(doenca))}
+function d3Doenca(doenca){return clamp(100+eventosDoenca(doenca).reduce((s,e)=>s+e.impacto,0),0,100)}
+function ipoDoenca(doenca){return clamp(d1Doenca(doenca)*.55+d2()*.20+d3Doenca(doenca)*.25,0,100)}
+function classe(v){if(v>=70)return ['good','Pronto para avançar'];if(v>=40)return ['warn','Atenção moderada'];return ['bad','Atenção alta']}
+function agora(){const d=new Date();return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}
+function qualityText(v){if(v>=75)return 'boa';if(v>=45)return 'regular';return 'crítica'}
+
+function setMode(mode){
+  document.body.classList.toggle('technical',mode==='technical');
+  by('simpleBtn').classList.toggle('active',mode==='simple');
+  by('techBtn').classList.toggle('active',mode==='technical');
+}
+
+function carregarExemplo(){
+  source='dados de exemplo';
+  linhas=[
+    {tipo:'envelhecimento',nome:'Aceleração temporal ELA',doenca:'ELA',doencaTipo:'neurodegenerativa',complexidade:9,progressoBase:3.5,fator:12,ciclos:6},
+    {tipo:'cristalografia',nome:'Cristais anti-Alzheimer',doenca:'Alzheimer',doencaTipo:'neurodegenerativa',complexidade:8,progressoBase:5,qualidade:82,defeitos:2,massa:4.5},
+    {tipo:'bioimpressao',nome:'Tecido neural Huntington',doenca:'Huntington',doencaTipo:'neurodegenerativa',complexidade:7,progressoBase:4,viabilidade:78,camadas:24,volume:12},
+    {tipo:'cristalografia',nome:'Inibidor cristalino Parkinson',doenca:'Parkinson',doencaTipo:'neurodegenerativa',complexidade:6,progressoBase:6,qualidade:88,defeitos:1,massa:3}
+  ];
+  modulos=[
+    {tipo:'sequenciador',nome:'Sequenciador G-1',energia:90,operacional:true,amostrasPorHora:95,taxaErro:.05},
+    {tipo:'bioreator',nome:'Biorreator B-2',energia:85,operacional:true,temp:37.5,densidade:88},
+    {tipo:'criogenica',nome:'Criostase C-3',energia:95,operacional:true,temp:-195,capacidade:200,armazenadas:150}
+  ];
+  eventos=[
+    {desc:'Tempestade solar reduziu energia dos laboratórios/equipamentos',impacto:-12,when:agora(),fonte:'simulação'},
+    {desc:'Contaminação em amostra do biorreator',impacto:-8,when:agora(),fonte:'simulação'},
+    {desc:'Avanço inesperado na cristalografia de Parkinson',impacto:10,when:agora(),fonte:'simulação'}
+  ];
+  render();
+}
+
+async function syncApis(){
+  source='sincronizando APIs públicas...';
+  by('sourceLine').textContent='Fonte: '+source;
+  const diseases=['Alzheimer','Parkinson','Huntington','ALS'];
+  const realLinhas=[],realEvents=[];
+  try{
+    const trialPromises=diseases.map(async disease=>{
+      const url='https://clinicaltrials.gov/api/v2/studies?query.cond='+encodeURIComponent(disease)+'&pageSize=8&format=json';
+      const data=await fetchJson(url);
+      const total=data.totalCount||data.studies?.length||0;
+      const completed=(data.studies||[]).filter(s=>String(s.protocolSection?.statusModule?.overallStatus||'').includes('COMPLETED')).length;
+      const progress=clamp(35+Math.min(40,total/8)+completed*3,20,92);
+      return {tipo:'cristalografia',nome:'Ensaios e evidências sobre '+disease,doenca:disease,doencaTipo:'biomédica',complexidade:disease==='Alzheimer'?8:7,progressoBase:clamp(progress/10,0,10),qualidade:clamp(55+completed*5,50,90),defeitos:Math.max(1,5-completed),massa:3+completed*.4};
+    });
+    realLinhas.push(...await Promise.all(trialPromises));
+  }catch(e){
+    realEvents.push({desc:'ClinicalTrials.gov não respondeu; mantendo pesquisas de exemplo',impacto:-3,when:agora(),fonte:'ClinicalTrials.gov'});
+  }
+  try{
+    const ox=await fetchJson('https://api.openalex.org/works?search=space%20biology%20biomedical&filter=from_publication_date:2024-01-01&per-page=1');
+    realEvents.push({desc:'OpenAlex encontrou '+(ox.meta?.count||0).toLocaleString('pt-BR')+' publicações recentes relacionadas a biomedicina espacial',impacto:8,when:agora(),fonte:'OpenAlex'});
+  }catch(e){
+    realEvents.push({desc:'OpenAlex indisponível agora; evidência bibliográfica não foi atualizada',impacto:-2,when:agora(),fonte:'OpenAlex'});
+  }
+  try{
+    const donki=await fetchJson('https://api.nasa.gov/DONKI/FLR?startDate='+dateDaysAgo(7)+'&endDate='+dateDaysAgo(0)+'&api_key=DEMO_KEY');
+    const strong=(Array.isArray(donki)?donki:[]).filter(e=>/M|X/.test(e.classType||'')).length;
+    if(strong) realEvents.push({desc:'NASA DONKI registrou '+strong+' flare(s) solar(es) fortes nos últimos 7 dias',impacto:-Math.min(25,strong*6),when:agora(),fonte:'NASA DONKI'});
+    else realEvents.push({desc:'NASA DONKI não trouxe flares fortes recentes',impacto:5,when:agora(),fonte:'NASA DONKI'});
+  }catch(e){
+    realEvents.push({desc:'NASA DONKI não respondeu; alerta espacial ficou em modo conservador',impacto:-4,when:agora(),fonte:'NASA DONKI'});
+  }
+  try{
+    const scales=await fetchJson('https://services.swpc.noaa.gov/products/noaa-scales.json');
+    const latest=Array.isArray(scales)?scales.at(-1):null;
+    if(latest) realEvents.push({desc:'NOAA SWPC consultado para escalas de clima espacial',impacto:0,when:agora(),fonte:'NOAA SWPC'});
+  }catch(e){
+    realEvents.push({desc:'NOAA SWPC indisponível; sem atualização complementar de clima espacial',impacto:-2,when:agora(),fonte:'NOAA SWPC'});
+  }
+  if(realLinhas.length) linhas=realLinhas;
+  eventos=[...realEvents,...eventos.filter(e=>e.fonte==='simulação').slice(0,1)];
+  modulos=[
+    {tipo:'sequenciador',nome:'Sequenciador orbital estimado',energia:88,operacional:true,amostrasPorHora:90,taxaErro:.06},
+    {tipo:'bioreator',nome:'Biorreator de referência',energia:82,operacional:true,temp:37.2,densidade:84},
+    {tipo:'criogenica',nome:'Criostase de amostras',energia:92,operacional:true,temp:-195.5,capacidade:240,armazenadas:170}
+  ];
+  source='ClinicalTrials.gov, OpenAlex, NASA DONKI e NOAA SWPC';
+  render(true);
+}
+async function fetchJson(url){const r=await fetch(url);if(!r.ok)throw new Error(r.status);return r.json()}
+function dateDaysAgo(n){const d=new Date(Date.now()-n*86400000);return d.toISOString().slice(0,10)}
+
+function esvaziar(){source='sem dados';linhas=[];modulos=[];eventos=[];render()}
+function registrarEvento(){
+  const doenca=by('evDoenca').value;
+  if(!doenca){eventos.unshift({desc:'Cadastre uma doença antes de registrar eventos',impacto:0,when:agora(),fonte:'aviso'});render(true);return}
+  const tipo=by('evTipo').value;
+  const desc=descricaoEvento(doenca,tipo);
+  const impacto=medirImpacto(doenca,tipo);
+  eventos.unshift({desc,doenca,impacto,when:agora(),fonte:'impacto automático'});
+  render(true);
+}
+function evRapido(tipo){
+  const doenca=by('evDoenca').value;
+  if(!doenca){eventos.unshift({desc:'Cadastre uma doença antes de registrar eventos',impacto:0,when:agora(),fonte:'aviso'});render(true);return}
+  eventos.unshift({desc:descricaoEvento(doenca,tipo),doenca,impacto:medirImpacto(doenca,tipo),when:agora(),fonte:'impacto automático'});
+  render(true);
+}
+function descricaoEvento(doenca,tipo){
+  const textos={
+    radiacao:'Radiação / clima espacial afetou '+doenca,
+    falha:'Falha de laboratório afetou '+doenca,
+    contaminacao:'Contaminação de amostra afetou '+doenca,
+    energia:'Energia ou temperatura afetou '+doenca,
+    avanco:'Avanço científico registrado para '+doenca
+  };
+  return textos[tipo]||('Evento registrado para '+doenca);
+}
+function medirImpacto(doenca,tipo='auto'){
+  const texto=doenca.toLowerCase();
+  const detectado=tipo==='auto'?detectarTipo(texto):tipo;
+  const base={radiacao:-14,falha:-18,contaminacao:-10,energia:-12,avanco:12,auto:-5}[detectado]??-5;
+  let ajuste=0;
+  const pesquisa=linhas.find(l=>l.doenca===doenca);
+  if(pesquisa&&saudeLinha(pesquisa)<45)ajuste-=5;
+  if(pesquisa&&saudeLinha(pesquisa)>75)ajuste+=2;
+  if(detectado!=='avanco'&&d2()<55)ajuste-=4;
+  if(detectado!=='avanco'&&d1()<55)ajuste-=3;
+  if(detectado==='avanco'&&d1()>70)ajuste+=3;
+  return clamp(base+ajuste,-30,20);
+}
+function detectarTipo(texto){
+  if(/radia|solar|flare|tempestade|cósmic|cosmic|donki|noaa/.test(texto))return 'radiacao';
+  if(/falha|módulo|modulo|sequenciador|biorreator|crio|equipamento|laboratório|laboratorio/.test(texto))return 'falha';
+  if(/contamina|amostra|fungo|bactéria|bacteria|esteril/.test(texto))return 'contaminacao';
+  if(/energia|temperatura|aquec|resfri|bateria|painel/.test(texto))return 'energia';
+  if(/avanço|avanco|sucesso|melhora|descoberta|progresso|resultado positivo/.test(texto))return 'avanco';
+  return 'auto';
+}
+function toggleModulo(i){modulos[i].operacional=!modulos[i].operacional;render(true)}
+function abrirTutorial(){by('tutorialBg').classList.add('open')}
+function fecharTutorial(){by('tutorialBg').classList.remove('open')}
+
+function render(pulse){
+  const v=ipo(),[cls,label]=classe(v),ring=by('ringFill'),lab=by('ipoLabel');
+  ring.style.strokeDashoffset=546.6*(1-v/100);
+  ring.style.stroke=corSaude(v);
+  lab.className='status '+cls;lab.textContent=label;
+  animateNum(v);
+  by('plainSummary').textContent=summaryText(v);
+  renderScoreMeaning(v);
+  by('sourceLine').textContent='Fonte: '+source+' - atualizado em '+agora();
+  renderFlow();
+  setBar('d1',d1());setBar('d2',d2());setBar('d3',d3());
+  renderMetricCard('d1',d1(),'Situação',qualityText(d1()));
+  renderMetricCard('d2',d2(),'Operação',qualityText(d2()));
+  renderMetricCard('d3',d3(),'Risco',qualityText(d3()));
+  by('d1Text').textContent=metricText('pesquisas',d1());
+  by('d2Text').textContent=metricText('laboratorios',d2());
+  by('d3Text').textContent=metricText('eventos',d3());
+  by('sLinhas').textContent=linhas.length;by('sModulos').textContent=modulos.length;by('sEventos').textContent=eventos.length;
+  by('sAlerta').textContent=linhas.filter(l=>saudeLinha(l)<45).length+modulos.filter(m=>saudeModulo(m)<45).length;
+  renderEventDiseaseOptions();renderRecommendations();renderDoencas();renderLinhas();renderModulos();renderEventos();
+}
+function renderScoreMeaning(v){
+  const title=by('scoreMeaningTitle'),text=by('scoreMeaningText');
+  if(v>=70){
+    title.textContent='Pode avançar, mantendo acompanhamento';
+    text.textContent='A maioria das pesquisas, laboratórios e alertas está em condição boa. Ainda vale olhar os cards por doença para encontrar pontos específicos.';
+  }else if(v>=40){
+    title.textContent='Pode continuar, mas exige atenção';
+    text.textContent='Existe algum risco relevante: uma pesquisa pode estar fraca, um laboratório pode estar instável ou eventos recentes podem ter atrapalhado.';
+  }else{
+    title.textContent='Não é um bom momento para avançar';
+    text.textContent='A combinação de pesquisas, estrutura e alertas indica risco alto. Revise os itens em atenção antes de tomar decisão.';
+  }
+}
+function metricText(tipo,v){
+  if(tipo==='pesquisas')return 'Mostra se as doenças cadastradas estão tendo avanço científico suficiente.';
+  if(tipo==='laboratorios')return 'Mostra se energia, eficiência e laboratórios/equipamentos sustentam as pesquisas.';
+  return 'Mostra se eventos recentes ajudaram ou atrapalharam o painel.';
+}
+function renderMetricCard(id,val,label,estado){
+  by(id+'Score').innerHTML=`${fmt(val)} <span>/100</span>`;
+  by(id+'Score').style.color=corSaude(val);
+  by(id+'State').textContent=`${label} ${estado}`;
+  by(id).style.background=corSaude(val);
+}
+function renderEventDiseaseOptions(){
+  const select=by('evDoenca');
+  if(!select)return;
+  const current=select.value;
+  const doencas=[...new Set(linhas.map(l=>l.doenca).filter(Boolean))];
+  select.innerHTML=doencas.length?doencas.map(d=>`<option value="${escapeAttr(d)}">${d}</option>`).join(''):'<option value="">Cadastre uma doença primeiro</option>';
+  if(doencas.includes(current))select.value=current;
+}
+function escapeAttr(v){return String(v).replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;').replaceAll('>','&gt;')}
+function renderFlow(){
+  const intro=by('flowIntro'),step1=by('flowStep1');
+  if(source.includes('ClinicalTrials')){
+    intro.textContent='Neste momento o painel combina APIs públicas com uma camada de simulação para laboratórios/equipamentos.';
+    step1.textContent='As pesquisas vieram de ClinicalTrials.gov e OpenAlex; os alertas vieram de NASA DONKI e NOAA SWPC.';
+  }else if(source.includes('manual')){
+    intro.textContent='Neste momento o painel usa dados cadastrados manualmente por quem está operando a demonstração.';
+    step1.textContent='Você escolhe o tipo de item, preenche os campos principais e o painel recalcula tudo sozinho.';
+  }else if(source.includes('sem dados')){
+    intro.textContent='O painel está vazio. Para começar, carregue exemplos, cadastre itens ou sincronize APIs públicas.';
+    step1.textContent='Nenhuma fonte está ativa agora. Escolha uma entrada para gerar métricas e recomendações.';
+  }else{
+    intro.textContent='Neste momento o painel usa uma base de exemplo para demonstrar o fluxo completo de preenchimento.';
+    step1.textContent='Os exemplos simulam pesquisas, laboratórios/equipamentos e eventos para mostrar como a nota final é formada.';
+  }
+}
+function animateNum(v){const el=by('ipoNum'),ini=ipoAtual,t0=performance.now();ipoAtual=v;(function step(t){const p=Math.min(1,(t-t0)/500);el.textContent=fmt(ini+(v-ini)*p);if(p<1)requestAnimationFrame(step)})(t0)}
+function setBar(id,val){by(id).style.width=clamp(val,0,100)+'%'}
+function summaryText(v){
+  const worstLine=[...linhas].sort((a,b)=>saudeLinha(a)-saudeLinha(b))[0];
+  const worstMod=[...modulos].sort((a,b)=>saudeModulo(a)-saudeModulo(b))[0];
+  const neg=eventos.filter(e=>e.impacto<0).length;
+  if(!linhas.length&&!modulos.length)return 'Sem dados para interpretar. Carregue exemplos ou sincronize APIs públicas.';
+  if(v>=70)return 'A missão está bem encaminhada. Continue monitorando eventos solares e os laboratórios/equipamentos com menor eficiência.';
+  if(v>=40)return 'A missão pode continuar, mas precisa de atenção: '+(worstMod?worstMod.nome:'um laboratório/equipamento')+' e '+(worstLine?worstLine.nome:'uma pesquisa')+' merecem revisão.';
+  return 'A operação está comprometida. Existem '+neg+' evento(s) negativo(s) e itens críticos que precisam de ação antes de avançar.';
+}
+function renderRecommendations(){
+  const recs=[];
+  const line=[...linhas].sort((a,b)=>saudeLinha(a)-saudeLinha(b))[0];
+  const mod=[...modulos].sort((a,b)=>saudeModulo(a)-saudeModulo(b))[0];
+  const neg=eventos.find(e=>e.impacto<0);
+  if(mod)recs.push(['Prioridade de laboratório',saudeModulo(mod)<45?'Verificar '+mod.nome+' antes de depender dele em novas etapas.':mod.nome+' está estável; mantenha monitoramento de energia.']);
+  if(line)recs.push(['Prioridade científica',saudeLinha(line)<45?'Revisar parâmetros de '+line.nome+' porque a saúde está baixa.':line.nome+' pode seguir, com atenção à complexidade.']);
+  if(neg)recs.push(['Evento mais urgente',neg.desc+' ('+(neg.impacto>0?'+':'')+fmt(neg.impacto)+').']);
+  if(!recs.length)recs.push(['Próximo passo','Carregue dados de exemplo ou sincronize APIs para gerar recomendações.']);
+  by('recommendations').innerHTML=recs.slice(0,3).map(r=>`<div class="rec"><b>${r[0]}</b><span>${r[1]}</span></div>`).join('');
+}
+function renderDoencas(){
+  const box=by('diseaseBox');
+  if(!box)return;
+  const doencas=[...new Set(linhas.map(l=>l.doenca).filter(Boolean))];
+  if(!doencas.length){box.innerHTML='<div class="empty">Nenhuma doença cadastrada ainda.</div>';return}
+  box.innerHTML=doencas.map(doenca=>{
+    const pesquisas=linhas.filter(l=>l.doenca===doenca);
+    const eventosRel=eventosDoenca(doenca);
+    const score=ipoDoenca(doenca),[cls,label]=classe(score);
+    const pior=[...pesquisas].sort((a,b)=>saudeLinha(a)-saudeLinha(b))[0];
+    const eventosNeg=eventosRel.filter(e=>e.impacto<0).length;
+    const motivo=eventosNeg
+      ? `${eventosNeg} evento(s) negativo(s) afetaram ${doenca}.`
+      : pior&&saudeLinha(pior)<55
+        ? `${pior.nome} é a pesquisa que mais puxa a nota para baixo.`
+        : `${doenca} está sem bloqueio crítico no momento.`;
+    return `<div class="disease-card">
+      <div class="disease-head">
+        <div><b>${doenca}</b><div class="sub">${pesquisas[0]?.doencaTipo||'doença cadastrada'}</div></div>
+        <div><div class="mini-score">${fmt(score)}</div><span class="mini-status ${cls}">${label}</span></div>
+      </div>
+      <div class="bar"><i style="width:${score}%;background:${corSaude(score)}"></i></div>
+      <div class="disease-meta">
+        <div><strong>${fmt(d1Doenca(doenca))}</strong><span>pesquisa</span></div>
+        <div><strong>${fmt(d3Doenca(doenca))}</strong><span>alertas</span></div>
+        <div><strong>${pesquisas.length}</strong><span>linha(s)</span></div>
+      </div>
+      <div class="disease-reason">${motivo}</div>
+    </div>`;
+  }).join('');
+}
+function corSaude(s){return s>=70?'var(--status-good)':s>=40?'var(--status-warn)':'var(--status-bad)'}
+const nomeTipoL={envelhecimento:'Envelhecimento',cristalografia:'Cristalografia',bioimpressao:'Bioimpressão'};
+const nomeTipoM={sequenciador:'Sequenciador',bioreator:'Biorreator',criogenica:'Criogênica'};
+function renderLinhas(){
+  const box=by('linhasBox');
+  if(!linhas.length){box.innerHTML='<div class="empty">Nenhuma pesquisa cadastrada.</div>';return}
+  box.innerHTML=linhas.map(l=>{
+    const s=saudeLinha(l),p=progressoLinha(l),why=s<40?'Precisa de revisão antes de avançar.':s<70?'Pode continuar com acompanhamento.':'Boa candidata para próxima etapa.';
+    const re=retornavel(l)?`<div class="why tech-only">Reentrada estimada: US$ ${custoReentrada(l).toLocaleString('pt-BR',{maximumFractionDigits:0})} - pronta para retorno: ${prontoRetorno(l)?'sim':'não'}.</div>`:'';
+    return `<div class="entity"><div class="entity-head"><div><div class="name">${l.nome}</div><div class="sub">${l.doenca} - ${l.doencaTipo}<span class="tech-only"> - complexidade ${l.complexidade}/10</span></div></div><span class="tag">${nomeTipoL[l.tipo]}</span></div><div class="vals"><div><div class="mv">${fmt(p)}%</div><div class="ml">progresso</div></div><div><div class="mv"><span class="dot" style="background:${corSaude(s)}"></span>${fmt(s)}</div><div class="ml">saúde</div></div></div><div class="why simple-only">${why}</div>${re}</div>`;
+  }).join('');
+}
+function renderModulos(){
+  const box=by('modulosBox');
+  if(!modulos.length){box.innerHTML='<div class="empty">Nenhum laboratório cadastrado.</div>';return}
+  box.innerHTML=modulos.map((m,i)=>{
+    const s=saudeModulo(m),e=eficienciaModulo(m),why=!m.operacional?'Está inativo e derruba a operação.':s<45?'Está abaixo do ideal; priorize manutenção.':'Está apto para apoiar pesquisas.';
+    return `<div class="entity"><div class="entity-head"><div><div class="name">${m.nome}</div><div class="sub">${nomeTipoM[m.tipo]} - energia ${fmt(m.energia)}%</div></div><span class="toggle ${m.operacional?'on':'off'}" onclick="toggleModulo(${i})">${m.operacional?'operacional':'inativo'}</span></div><div class="vals"><div><div class="mv">${fmt(e)}%</div><div class="ml">eficiência</div></div><div><div class="mv"><span class="dot" style="background:${corSaude(s)}"></span>${fmt(s)}</div><div class="ml">saúde</div></div></div><div class="why simple-only">${why}</div></div>`;
+  }).join('');
+}
+function renderEventos(){
+  const box=by('eventosBox');
+  if(!eventos.length){box.innerHTML='<div class="empty">Nenhum evento. O fator de alertas começa em 100.</div>';return}
+  box.innerHTML=eventos.map(e=>`<div class="event"><div><div>${e.desc}</div><div class="when">${e.when}${e.fonte?' - '+e.fonte:''}</div></div><div class="impact ${e.impacto>=0?'pos':'neg'}">${e.impacto>=0?'+':''}${fmt(e.impacto)}</div></div>`).join('');
+}
+
+const campos={
+  envelhecimento:[
+    ['nome','Nome da pesquisa','text',null,null,'Ex.: Aceleração temporal ELA'],
+    ['doenca','Doença-alvo','text',null,null,'Ex.: ELA'],
+    ['doencaTipo','Tipo da doença','text',null,null,'Ex.: neurodegenerativa'],
+    ['complexidade','Complexidade (0 a 10)','number',0,10,'Ex.: 7'],
+    ['progressoBase','Progresso base (0 a 10)','number',0,10,'Ex.: 4'],
+    ['fator','Fator de aceleração','number',null,null,'Ex.: 12'],
+    ['ciclos','Ciclos completados','number',null,null,'Ex.: 6']
+  ],
+  cristalografia:[
+    ['nome','Nome da pesquisa','text',null,null,'Ex.: Cristais anti-Alzheimer'],
+    ['doenca','Doença-alvo','text',null,null,'Ex.: Alzheimer'],
+    ['doencaTipo','Tipo da doença','text',null,null,'Ex.: neurodegenerativa'],
+    ['complexidade','Complexidade (0 a 10)','number',0,10,'Ex.: 8'],
+    ['progressoBase','Progresso base (0 a 10)','number',0,10,'Ex.: 5'],
+    ['qualidade','Qualidade do cristal','range',0,100,'Ex.: 82'],
+    ['defeitos','Defeitos detectados','number',null,null,'Ex.: 2'],
+    ['massa','Massa da amostra (g)','number',null,null,'Ex.: 4,5']
+  ],
+  bioimpressao:[
+    ['nome','Nome da pesquisa','text',null,null,'Ex.: Tecido neural Huntington'],
+    ['doenca','Doença-alvo','text',null,null,'Ex.: Huntington'],
+    ['doencaTipo','Tipo da doença','text',null,null,'Ex.: neurodegenerativa'],
+    ['complexidade','Complexidade (0 a 10)','number',0,10,'Ex.: 7'],
+    ['progressoBase','Progresso base (0 a 10)','number',0,10,'Ex.: 4'],
+    ['viabilidade','Viabilidade do tecido','range',0,100,'Ex.: 78'],
+    ['camadas','Camadas impressas','number',null,null,'Ex.: 24'],
+    ['volume','Volume (cm3)','number',null,null,'Ex.: 12']
+  ],
+  sequenciador:[
+    ['nome','Nome do laboratório/equipamento','text',null,null,'Ex.: Sequenciador G-1'],
+    ['energia','Energia (0 a 100)','number',0,100,'Ex.: 90'],
+    ['amostrasPorHora','Amostras por hora','number',null,null,'Ex.: 95'],
+    ['taxaErro','Taxa de erro (0 a 1)','number',null,null,'Ex.: 0,05']
+  ],
+  bioreator:[
+    ['nome','Nome do laboratório/equipamento','text',null,null,'Ex.: Biorreator B-2'],
+    ['energia','Energia (0 a 100)','number',0,100,'Ex.: 85'],
+    ['temp','Temperatura ideal: 37 C','number',null,null,'Ex.: 37,5'],
+    ['densidade','Densidade celular (0 a 100)','number',0,100,'Ex.: 88']
+  ],
+  criogenica:[
+    ['nome','Nome do laboratório/equipamento','text',null,null,'Ex.: Criostase C-3'],
+    ['energia','Energia (0 a 100)','number',0,100,'Ex.: 95'],
+    ['temp','Temperatura ideal: -196 C','number',null,null,'Ex.: -195'],
+    ['capacidade','Capacidade de amostras','number',null,null,'Ex.: 200'],
+    ['armazenadas','Amostras armazenadas','number',null,null,'Ex.: 150']
+  ]
+};
+function abrirCadastro(){by('modalBg').classList.add('open');camposCadastro()}
+function fecharCadastro(){by('modalBg').classList.remove('open')}
+const ajudaCadastro={
+  envelhecimento:'Use este tipo quando a pesquisa mede como uma doença evolui em ciclos acelerados. Se estiver em dúvida, clique em preencher sugestão e ajuste depois.',
+  cristalografia:'Use este tipo quando a pesquisa envolve cristais/proteínas e depende de qualidade da amostra e poucos defeitos.',
+  bioimpressao:'Use este tipo quando a pesquisa envolve tecido ou estrutura impressa em 3D, com viabilidade, camadas e volume.',
+  sequenciador:'Use para laboratório/equipamento que processa amostras. Energia alta e baixa taxa de erro melhoram a nota.',
+  bioreator:'Use para laboratório/ambiente de cultivo. Temperatura próxima de 37 C e alta densidade melhoram a nota.',
+  criogenica:'Use para laboratório/equipamento de armazenamento frio. Temperatura próxima de -196 C e energia alta melhoram a nota.'
+};
+const escalaCadastro={
+  pesquisa:[
+    ['0-3','baixo/inicial','Use quando há pouco avanço, poucos dados ou alta incerteza.'],
+    ['4-6','médio','Use quando já existe andamento razoável, mas ainda há risco.'],
+    ['7-10','alto','Use quando o parâmetro já está forte ou a dificuldade é alta.']
+  ],
+  modulo:[
+    ['0-39','crítico','Use quando o equipamento está fraco, instável ou quase parado.'],
+    ['40-69','atenção','Use quando funciona, mas com limitação ou risco.'],
+    ['70-100','bom','Use quando o laboratório/equipamento está operando bem.']
+  ]
+};
+const ajudaCampo={
+  nome:'Nome livre para identificar o item no painel. Não entra na fórmula, só aparece nos cards e recomendações.',
+  doenca:'Doença ligada à pesquisa. Agrupa o IPO por doença e permite registrar eventos apenas para doenças cadastradas.',
+  doencaTipo:'Categoria da doença, como neurodegenerativa, autoimune ou infecciosa. É informativa e não altera a nota.',
+  complexidade:'Não precisa ser exato: escolha por faixa. 0-3 simples, 4-6 média, 7-10 difícil. Fórmula: saúde = progresso calculado - complexidade x 2.',
+  progressoBase:'Não precisa ser exato: 0-3 inicial, 4-6 andamento médio, 7-10 avançado. O sistema converte: base = progresso base x 10.',
+  fator:'Escolha pelo ritmo esperado. Baixo: 2-5, médio: 6-10, alto: 11+. Fórmula: progresso = base + ciclos x (fator / 2).',
+  ciclos:'Use a quantidade real de rodadas concluídas. Se não souber, use 0 ou clique em preencher sugestão. Fórmula: progresso = base + ciclos x (fator / 2).',
+  qualidade:'Usado em cristalografia. Fórmula: progresso = média(base, qualidade) - defeitos x 3.',
+  defeitos:'Usado em cristalografia. Cada defeito tira 3 pontos: progresso = média(base, qualidade) - defeitos x 3.',
+  massa:'Usada só na estimativa de reentrada da cristalografia: custo = 12000 + massa x 850.',
+  viabilidade:'Usada em bioimpressão. Fórmula: progresso = média(base, viabilidade) + bônus de camadas.',
+  camadas:'Usada em bioimpressão. Bônus = camadas x 0,5, limitado a 20 pontos.',
+  volume:'Usado só na estimativa de reentrada da bioimpressão: custo = 15000 + volume x 120.',
+  energia:'Escolha por faixa: 0-39 crítico, 40-69 atenção, 70-100 bom. Fórmula: saúde = eficiência x 0,6 + energia x 0,4.',
+  amostrasPorHora:'Usado no sequenciador. Eficiência = min(100, amostras por hora) - taxa de erro x 100.',
+  taxaErro:'Usada no sequenciador. Eficiência = min(100, amostras/hora) - taxa de erro x 100. Ex.: 0,05 tira 5 pontos.',
+  temp:'Usada em biorreator/criogênica. Quanto mais longe da temperatura ideal, maior a perda de eficiência.',
+  densidade:'Usada no biorreator. Eficiência = densidade - distância da temperatura ideal x 5.',
+  capacidade:'Usada na câmara criogênica para calcular ocupação: ocupação = armazenadas x 100 / capacidade.',
+  armazenadas:'Usada na câmara criogênica. Se ocupação passar de 100%, a eficiência perde pontos.'
+};
+const sugestoesCadastro={
+  envelhecimento:{nome:'Aceleração temporal ELA',doenca:'ELA',doencaTipo:'neurodegenerativa',complexidade:7,progressoBase:4,fator:10,ciclos:5},
+  cristalografia:{nome:'Cristais anti-Alzheimer',doenca:'Alzheimer',doencaTipo:'neurodegenerativa',complexidade:8,progressoBase:5,qualidade:80,defeitos:2,massa:4.5},
+  bioimpressao:{nome:'Tecido neural Huntington',doenca:'Huntington',doencaTipo:'neurodegenerativa',complexidade:7,progressoBase:4,viabilidade:78,camadas:24,volume:12},
+  sequenciador:{nome:'Sequenciador G-1',energia:90,amostrasPorHora:95,taxaErro:0.05},
+  bioreator:{nome:'Biorreator B-2',energia:85,temp:37.5,densidade:88},
+  criogenica:{nome:'Criostase C-3',energia:95,temp:-195,capacidade:200,armazenadas:150}
+};
+function camposCadastro(){
+  const t=by('cadTipo').value;
+  by('cadAjuda').textContent=ajudaCadastro[t]||'Preencha os campos principais e o painel recalcula tudo sozinho.';
+  renderEscalaCadastro(t);
+  by('cadCampos').innerHTML=campos[t].map(([k,lab,tp,min,max,exemplo])=>{
+    const temEscala=min!==undefined&&min!==null;
+    const escala=temEscala?`${min}-${max}`:'';
+    const dica=exemplo?`${escala ? escala+' · ' : ''}${exemplo}`:escala;
+    const help=ajudaCampo[k]||'Campo usado no cálculo do painel.';
+    const valorRange=tp==='range'?Math.round((min+max)/2):'';
+    const step=tp==='range'?'1':tp!=='text'?'any':'';
+    const input=`<input data-k="${k}" type="${tp}" ${step?'step="'+step+'"':''} ${temEscala?'min="'+min+'" max="'+max+'"':''} ${exemplo&&tp!=='range'?'placeholder="'+escapeAttr(exemplo)+'"':''} value="${valorRange}">`;
+    const control=tp==='range'?`<div class="range-wrap">${input}<div class="range-value" data-range-value="${k}">${valorRange}</div></div>`:input;
+    return `<div class="field"><label><span class="field-name">${lab}<span class="field-help" data-tip="${escapeAttr(help)}">?</span></span><span>${dica}</span></label>${control}</div>`;
+  }).join('');
+  document.querySelectorAll('#cadCampos input[type="range"]').forEach(input=>{
+    atualizarValorRange(input.dataset.k,input.value);
+    input.addEventListener('input',()=>atualizarValorRange(input.dataset.k,input.value));
+  });
+}
+function atualizarValorRange(k,v){
+  const input=document.querySelector(`#cadCampos input[data-k="${k}"]`);
+  const min=input?Number(input.min||0):0;
+  const max=input?Number(input.max||100):100;
+  const inteiro=Math.round(Number(v)||0);
+  if(input){
+    input.value=inteiro;
+    const pct=max>min?((inteiro-min)/(max-min))*100:0;
+    input.style.background=`linear-gradient(90deg,var(--info) 0%,var(--info) ${pct}%,#eee5dc ${pct}%,#eee5dc 100%)`;
+  }
+  const el=document.querySelector(`#cadCampos [data-range-value="${k}"]`);
+  if(el)el.textContent=inteiro;
+}
+function renderEscalaCadastro(t){
+  const ehPesquisa=['envelhecimento','cristalografia','bioimpressao'].includes(t);
+  const rows=ehPesquisa?escalaCadastro.pesquisa:escalaCadastro.modulo;
+  by('cadEscala').innerHTML=rows.map(([faixa,titulo,desc])=>`<div><b>${faixa} · ${titulo}</b><span>${desc}</span></div>`).join('');
+}
+function preencherSugestao(){
+  const t=by('cadTipo').value;
+  const sugestao=sugestoesCadastro[t]||{};
+  Object.entries(sugestao).forEach(([k,v])=>{
+    const input=document.querySelector(`#cadCampos input[data-k="${k}"]`);
+    if(input){
+      input.value=String(v).replace('.',',');
+      if(input.type==='range')atualizarValorRange(k,input.value);
+    }
+  });
+}
+function salvarCadastro(){
+  const t=by('cadTipo').value,o={tipo:t};
+  document.querySelectorAll('#cadCampos input').forEach(inp=>{const k=inp.dataset.k,v=inp.value.trim();o[k]=inp.type==='text'?(v||'Sem nome'):(parseFloat(v.replace(',','.'))||0)});
+  if(['envelhecimento','cristalografia','bioimpressao'].includes(t)){
+    o.complexidade=clamp(o.complexidade||0,0,10);
+    o.progressoBase=clamp(o.progressoBase||0,0,10);
+    linhas.push(o);
+  }else{
+    o.operacional=true;
+    o.energia=clamp(o.energia||0,0,100);
+    if(t==='bioreator')o.densidade=clamp(o.densidade||0,0,100);
+    if(t==='criogenica'&&!o.capacidade)o.capacidade=1;
+    modulos.push(o);
+  }
+  source='dados manuais';fecharCadastro();render(true);
+}
+by('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')fecharCadastro()});
+by('tutorialBg').addEventListener('click',e=>{if(e.target.id==='tutorialBg')fecharTutorial()});
+carregarExemplo();
+</script>
+</body>
+</html>
