@@ -10,6 +10,10 @@ Abra o arquivo:
 
 O protótipo é um HTML autocontido, então não precisa instalar dependências.
 
+Quando publicado no GitHub Pages, acesse:
+
+`https://marianafagueiro.github.io/astorbio-monitor/`
+
 ## O que o painel mostra
 
 - Saúde geral da missão.
