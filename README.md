@@ -17,4 +17,3 @@ O protótipo é um HTML autocontido, então não precisa instalar dependências.
 - Pesquisas, laboratórios/equipamentos e eventos.
 - Cadastro guiado com exemplos, ajuda por campo e sugestão automática.
 - Sincronização experimental com APIs públicas.
-
